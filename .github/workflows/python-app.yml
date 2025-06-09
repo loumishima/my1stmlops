@@ -1,0 +1,13 @@
+name: Basic CI
+on: [push]
+jobs:
+    build:
+        runs-on: macos-latest
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                python-version : 3.11
+            - name: Display Python version
+              run: python -c "import sys; print(sys.version)"
