@@ -1,7 +1,7 @@
 output "fastapi_url" {
-  value = google_cloud_run_service.fastapi.status[0].url
+  value = google_cloud_run_v2_service.fastapi.uri
 }
 
 output "streamlit_url" {
-  value = google_cloud_run_service.streamlit.status[0].url
+  value = google_cloud_run_v2_service.streamlit.uri
 }
