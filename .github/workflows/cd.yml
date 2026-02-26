@@ -6,7 +6,7 @@ on:
     types: [completed]
 
 env:
-  PROJECT_ID: ${{ vars.PROJECT_ID}}
+  PROJECT_ID: ${{ vars.PROJECT_ID }}
   REGION: ${{ vars.REGION }}
   REPO: app-repo
 
@@ -20,26 +20,23 @@ jobs:
       id-token: write
 
     steps:
+      - uses: actions/checkout@v4
+
       - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-      - name: Deploy FastAPI
-        run: |
-          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/fastapi:${{ github.event.workflow_run.head_sha }}
-          gcloud run deploy fastapi \
-            --image $IMAGE \
-            --region $REGION \
-            --platform managed \
-            --allow-unauthenticated
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
 
-      - name: Deploy Streamlit
+      - name: Terraform Init
+        run: terraform init
+        working-directory: infra
+
+      - name: Terraform Apply
         run: |
-          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/streamlit:${{ github.event.workflow_run.head_sha }}
-          gcloud run deploy streamlit \
-            --image $IMAGE \
-            --region $REGION \
-            --platform managed \
-            --set-env-vars API_URL=https://FASTAPI_URL \
-            --allow-unauthenticated
+          terraform apply --auto-approve \
+          -var="fastapi_image=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/fastapi:${{ github.event.workflow_run.head_sha }}" \
+          -var="streamlit_image=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/streamlit:${{ github.event.workflow_run.head_sha }}"
+        working-directory: infra
