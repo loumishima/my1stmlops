@@ -6,13 +6,18 @@ on:
     types: [completed]
 
 env:
-  PROJECT_ID: seu-project-id
-  REGION: us-central1
+  PROJECT_ID: ${{ vars.PROJECT_ID}}
+  REGION: ${{ vars.REGION }}
   REPO: app-repo
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - uses: google-github-actions/auth@v2
@@ -22,7 +27,7 @@ jobs:
 
       - name: Deploy FastAPI
         run: |
-          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/fastapi:${{ github.sha }}
+          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/fastapi:${{ github.event.workflow_run.head_sha }}
           gcloud run deploy fastapi \
             --image $IMAGE \
             --region $REGION \
@@ -31,7 +36,7 @@ jobs:
 
       - name: Deploy Streamlit
         run: |
-          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/streamlit:${{ github.sha }}
+          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/streamlit:${{ github.event.workflow_run.head_sha }}
           gcloud run deploy streamlit \
             --image $IMAGE \
             --region $REGION \

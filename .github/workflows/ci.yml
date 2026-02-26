@@ -1,40 +1,44 @@
-name: CD
+name: CI
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
+  push:
+    branches: ["main"]
 
 env:
-  PROJECT_ID: ${{ vars.PROJECT_ID }}
+  PROJECT_ID: ${{ vars.PROJECT_ID}}
   REGION: ${{ vars.REGION }}
   REPO: app-repo
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
-      - uses: google-github-actions/auth@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
-      - name: Deploy FastAPI
+      - name: Configure Docker
+        run: gcloud auth configure-docker $REGION-docker.pkg.dev
+
+      - name: Build and Push FastApi
         run: |
           IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/fastapi:${{ github.sha }}
-          gcloud run deploy fastapi \
-            --image $IMAGE \
-            --region $REGION \
-            --platform managed \
-            --allow-unauthenticated
+          docker build -t $IMAGE ./app/fastapi
+          docker push $IMAGE
 
-      - name: Deploy Streamlit
+
+      - name: Build and Push Streamlit
         run: |
           IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/streamlit:${{ github.sha }}
-          gcloud run deploy streamlit \
-            --image $IMAGE \
-            --region $REGION \
-            --platform managed \
-            --set-env-vars API_URL=https://FASTAPI_URL \
-            --allow-unauthenticated
+          docker build -t $IMAGE ./app/streamlit
+          docker push $IMAGE
