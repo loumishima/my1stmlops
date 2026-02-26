@@ -1,0 +1,40 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+env:
+  PROJECT_ID: seu-project-id
+  REGION: us-central1
+  REPO: app-repo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Deploy FastAPI
+        run: |
+          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/fastapi:${{ github.sha }}
+          gcloud run deploy fastapi \
+            --image $IMAGE \
+            --region $REGION \
+            --platform managed \
+            --allow-unauthenticated
+
+      - name: Deploy Streamlit
+        run: |
+          IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/streamlit:${{ github.sha }}
+          gcloud run deploy streamlit \
+            --image $IMAGE \
+            --region $REGION \
+            --platform managed \
+            --set-env-vars API_URL=https://FASTAPI_URL \
+            --allow-unauthenticated
