@@ -6,8 +6,8 @@ on:
     types: [completed]
 
 env:
-  PROJECT_ID: seu-project-id
-  REGION: us-central1
+  PROJECT_ID: ${{ vars.PROJECT_ID }}
+  REGION: ${{ vars.REGION }}
   REPO: app-repo
 
 jobs:
