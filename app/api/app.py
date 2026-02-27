@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from typing import Optional
 
-from app.core.simulator import InvestmentSimulator
+from core.simulator import InvestmentSimulator
 
 # from prometheus_fastapi_instrumentator import Instrumentator
 
