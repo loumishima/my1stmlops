@@ -33,12 +33,12 @@ jobs:
       - name: Build and Push FastApi
         run: |
           IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/fastapi:${{ github.sha }}
-          docker build -t $IMAGE ./app/fastapi
+          docker build -t $IMAGE -f app/fastapi/Dockerfile .
           docker push $IMAGE
 
 
       - name: Build and Push Streamlit
         run: |
           IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/streamlit:${{ github.sha }}
-          docker build -t $IMAGE ./app/streamlit
+          docker build -t $IMAGE -f app/streamlit/Dockerfile .
           docker push $IMAGE
