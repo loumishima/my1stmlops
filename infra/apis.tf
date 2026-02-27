@@ -6,4 +6,5 @@ resource "google_project_service" "services" {
   ])
 
   service = each.key
+  disable_on_destroy = false
 }
