@@ -1,16 +1,33 @@
+from datetime import datetime
 from fastapi import FastAPI
-import os
+from pydantic import BaseModel, Field
+from typing import Optional
+
+from app.core.simulator import InvestmentSimulator
+
+# from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI()
 
-
-@app.get("/")
-def hello():
-    return {"message": "Hello from FastAPI 🚀"}
+# TODO: Remove Prometheus for now
+# Instrumentator().instrument(app).expose(app)
 
 
-if __name__ == "__main__":
-    import uvicorn
+class SimulationInput(BaseModel):
+    monthly_investment: float = Field(..., ge=0)
+    interest_rate: float = Field(..., ge=0)
+    begin: datetime
+    end: Optional[datetime]
+    goal: Optional[float]
+    initial_value: float = Field(..., ge=0)
+    bonus: Optional[dict]
 
-    port = int(os.environ.get("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+
+@app.post("/simulate")
+def simulate(payload: SimulationInput):
+    sim = InvestmentSimulator(**payload.model_dump())
+
+    # Dict contendo valor final, data final e evolução
+    result = sim.simulate()
+
+    return result
