@@ -4,7 +4,7 @@ venv/
 *.backup
 *.hcl
 *.pyc
-*.txt
+dados.txt
 Tiltfile
 docker-compose.yml
 

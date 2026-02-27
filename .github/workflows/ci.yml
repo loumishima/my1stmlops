@@ -33,7 +33,7 @@ jobs:
       - name: Build and Push FastApi
         run: |
           IMAGE=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/fastapi:${{ github.sha }}
-          docker build -t $IMAGE -f app/fastapi/Dockerfile .
+          docker build -t $IMAGE -f app/api/Dockerfile .
           docker push $IMAGE
 
 
